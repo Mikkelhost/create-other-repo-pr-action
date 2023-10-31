@@ -1,0 +1,73 @@
+name: 'Create other repo pull request action'
+
+description: 'Github Action to create a pull request on another repository'
+
+inputs: 
+    repository_owner:
+        description: 'Repository Owner (e.g: octocat)'
+        required: true
+    repository_name:
+        description: 'Repository Name (e.g: my-repo)'
+        required: false
+    head_branch:
+        description: 'The branch that contains commits for your pull request'
+        required: true
+    base_branch:
+        description: 'The branch into which you want your code merged'
+        required: true
+    pr_title:
+        description: 'Title for the pull request'
+        required: true
+    pr_body:
+        description: 'Body for the pull request'
+        required: true
+    access_token:
+        description: 'A PAT that has access to the repository (if necessary). Not to be combined with ssh_deploy_key'
+        required: false
+    ssh_deploy_key:
+        description: 'Allows cloning of git reposorties via SSH Key. Not to be combined with access_token'
+        required: false
+
+runs:
+  using: composite
+  steps:
+    - name: Clone informed repository
+      run: |
+        # If access_token and ssh_deploy_key are defined then error out.
+        if [ ! -z "${{ inputs.access_token }}" ] && [ ! -z "${{ inputs.ssh_deploy_key }}" ]; then
+            echo "Error: access_token and ssh_deploy_key are defined. Please only use one."
+            exit 1
+        fi
+
+        if [ ! -z "${{ inputs.access_token }}" ]; then
+            git clone https://${{ inputs.access_token }}@github.com/${{ inputs.repository_owner }}/${{ inputs.repository_name }}.git
+        elif [ ! -z "${{ inputs.ssh_deploy_key }}" ]; then
+            mkdir --parents "$HOME/.ssh"
+
+            DEPLOY_KEY_FILE="$HOME/.ssh/deploy_key"
+            echo "${{ inputs.ssh_deploy_key }}" > "$DEPLOY_KEY_FILE"
+            chmod 600 "$DEPLOY_KEY_FILE"
+
+            SSH_KNOWN_HOSTS_FILE="$HOME/.ssh/known_hosts"
+            ssh-keyscan -H "github.com" > "$SSH_KNOWN_HOSTS_FILE"
+            
+            export GIT_SSH_COMMAND="ssh -i "$DEPLOY_KEY_FILE" -o UserKnownHostsFile=$SSH_KNOWN_HOSTS_FILE"
+            git clone git@github.com:${{ inputs.repository_owner }}/${{ inputs.repository_name }}.git
+        else
+            git clone https://github.com/${{ inputs.repository_owner }}/${{ inputs.repository_name }}.git
+        fi
+
+        if [ -d "${{ inputs.repository_name }}" ]; then
+            echo "Cloned ${{ inputs.repository_name }} repository successfully."
+        else
+            echo "Error: Couldn't clone ${{ inputs.repository_name }} repository. Check the inputs or the PAT scope."
+            exit 1
+        fi
+      shell: bash
+    - name: Create pull request
+      run: |
+        cd ${{ inputs.repository_name }}
+        git init
+        gh auth login --with-token ${inputs.access_token}
+        gh pr create -B ${{inputs.base_branch}} -H ${{inputs.head_branch}} --title ${{inputs.pr_title}} --body ${{inputs.pr_body}}
+      shell: bash
