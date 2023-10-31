@@ -33,6 +33,8 @@ runs:
   steps:
     - name: Clone informed repository
       run: |
+        # Remove the directory if already present
+        rm -rf ${{ inputs.repository_name }}
         # If access_token and ssh_deploy_key are defined then error out.
         if [ ! -z "${{ inputs.access_token }}" ] && [ ! -z "${{ inputs.ssh_deploy_key }}" ]; then
             echo "Error: access_token and ssh_deploy_key are defined. Please only use one."
