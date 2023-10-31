@@ -72,5 +72,5 @@ runs:
         git init
         echo "${{inputs.access_token}}" > token.txt
         gh auth login --with-token < token.txt
-        gh pr create -B ${{inputs.base_branch}} -H ${{inputs.head_branch}} --title ${{inputs.pr_title}} --body ${{inputs.pr_body}}
+        gh pr create -B ${{inputs.base_branch}} -H ${{inputs.head_branch}} --title "${{inputs.pr_title}}" --body "${{inputs.pr_body}}"
       shell: bash
