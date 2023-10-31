@@ -24,9 +24,9 @@ inputs:
     access_token:
         description: 'A PAT that has access to the repository (if necessary). Not to be combined with ssh_deploy_key'
         required: false
-    ssh_deploy_key:
-        description: 'Allows cloning of git reposorties via SSH Key. Not to be combined with access_token'
-        required: false
+    # ssh_deploy_key:
+    #     description: 'Allows cloning of git reposorties via SSH Key. Not to be combined with access_token'
+    #     required: false
 
 runs:
   using: composite
