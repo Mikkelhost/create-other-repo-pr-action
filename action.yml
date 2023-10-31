@@ -70,6 +70,6 @@ runs:
       run: |
         cd ${{ inputs.repository_name }}
         git init
-        gh auth login --with-token ${inputs.access_token}
+        gh auth login --with-token ${{inputs.access_token}}
         gh pr create -B ${{inputs.base_branch}} -H ${{inputs.head_branch}} --title ${{inputs.pr_title}} --body ${{inputs.pr_body}}
       shell: bash
