@@ -75,13 +75,15 @@ runs:
         git init
         echo "${{inputs.access_token}}" > token.txt
         gh auth login --with-token < token.txt
-        gh pr create -B ${{inputs.base_branch}} -H ${{inputs.head_branch}} --title "${{inputs.pr_title}}" --body "${{inputs.pr_body}}"
-        if [ $? -ne 0 ]; then
-            if [ ! -z "${{ inputs.ignore_pr_creation_err }}" ]; then
-                echo "[INFO] Ignore pr creation errors set, exiting with no error..."
-                exit 0
-            else
-                echo "Command encountered an error."
-            fi
+        prs=$(gh pr list \
+          --json baseRefName,headRefName \
+          --jq '
+              map(select(.baseRefName == "${{inputs.base_branch}}" and .headRefName == "${{inputs.head_branch}}"))
+              | length
+          ')
+        if [ prs > 0 ] && [ ! -z "${{ inputs.ignore_pr_creation_err }}" ]; then
+            echo "[INFO] Ignore pr creation errors set, exiting with no error..."
+            exit 0
         fi
+        gh pr create -B ${{inputs.base_branch}} -H ${{inputs.head_branch}} --title "${{inputs.pr_title}}" --body "${{inputs.pr_body}}"
       shell: bash
