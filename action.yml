@@ -24,7 +24,7 @@ inputs:
     access_token:
         description: 'A PAT that has access to the repository (if necessary). Not to be combined with ssh_deploy_key'
         required: false
-    ignore_pr_creation_err:
+    ignore_pr_exists:
         description: 'If the pull request creation returns an error, ignore it'
         required: false
     # ssh_deploy_key:
@@ -81,7 +81,7 @@ runs:
               map(select(.baseRefName == "${{inputs.base_branch}}" and .headRefName == "${{inputs.head_branch}}"))
               | length
           ')
-        if (( $prs > 0 )) && [ ! -z "${{ inputs.ignore_pr_creation_err }}" ]; then
+        if (( $prs > 0 )) && [ ! -z "${{ inputs.ignore_pr_exists }}" ]; then
             echo "[INFO] Ignore pr creation errors set, exiting with no error..."
             exit 0
         fi
