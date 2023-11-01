@@ -81,7 +81,7 @@ runs:
               map(select(.baseRefName == "${{inputs.base_branch}}" and .headRefName == "${{inputs.head_branch}}"))
               | length
           ')
-        if (( prs > 0 )) && [ ! -z "${{ inputs.ignore_pr_creation_err }}" ]; then
+        if (( $prs > 0 )) && [ ! -z "${{ inputs.ignore_pr_creation_err }}" ]; then
             echo "[INFO] Ignore pr creation errors set, exiting with no error..."
             exit 0
         fi
