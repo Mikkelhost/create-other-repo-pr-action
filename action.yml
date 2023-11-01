@@ -24,6 +24,9 @@ inputs:
     access_token:
         description: 'A PAT that has access to the repository (if necessary). Not to be combined with ssh_deploy_key'
         required: false
+    ignore_pr_creation_err:
+        description: 'If the pull request creation returns an error, ignore it'
+        required: false
     # ssh_deploy_key:
     #     description: 'Allows cloning of git reposorties via SSH Key. Not to be combined with access_token'
     #     required: false
@@ -73,4 +76,12 @@ runs:
         echo "${{inputs.access_token}}" > token.txt
         gh auth login --with-token < token.txt
         gh pr create -B ${{inputs.base_branch}} -H ${{inputs.head_branch}} --title "${{inputs.pr_title}}" --body "${{inputs.pr_body}}"
+        if [ $? -ne 0 ]; then
+            if [ ! -z "${{ inputs.ignore_pr_creation_err }}" ]; then
+                echo "[INFO] Ignore pr creation errors set, exiting with no error..."
+                exit 0
+            else
+                echo "Command encountered an error."
+            fi
+        fi
       shell: bash
