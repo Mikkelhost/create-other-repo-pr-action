@@ -85,5 +85,18 @@ runs:
             echo "[INFO] Ignore pr creation errors set, exiting with no error..."
             exit 0
         fi
-        gh pr create -B ${{inputs.base_branch}} -H ${{inputs.head_branch}} --title "${{inputs.pr_title}}" --body "${{inputs.pr_body}}"
+        output=$(gh pr create -B ${{inputs.base_branch}} -H ${{inputs.head_branch}} --title "${{inputs.pr_title}}" --body "${{inputs.pr_body}}" 2>&1)
+        status=$?
+        
+        # Check if the pr creation command failed and if the error message contains "No commits"
+        if [ $status -ne 0 ]; then
+            if echo "$output" | grep -q "No commits between"; then
+                echo "[INFO] No commits to create a pull request, exiting with no error..."
+                exit 0
+            else
+                # If it fails for another reason, print the output and exit with the original status
+                echo "[ERROR] Failed to create pull request: $output"
+                exit $status
+            fi
+        fi
       shell: bash
