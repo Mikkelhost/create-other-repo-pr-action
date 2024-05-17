@@ -85,8 +85,14 @@ runs:
             echo "[INFO] Ignore pr creation errors set, exiting with no error..."
             exit 0
         fi
+        set +e
+
+        # Capture the output and status of the gh pr create command
         output=$(gh pr create -B ${{inputs.base_branch}} -H ${{inputs.head_branch}} --title "${{inputs.pr_title}}" --body "${{inputs.pr_body}}" 2>&1)
         status=$?
+        
+        # Re-enable immediate exit on error
+        set -e
         
         echo "[DEBUG] PR create status: $status"
         echo "[DEBUG] PR create output: $output"
